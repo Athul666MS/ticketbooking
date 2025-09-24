@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Booking</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        a { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        a{ padding: 8px 15px; margin: 5px;background-color:white }
+    </style>
+</head>
+<body>
+    <h1>Event Booking System</h1>
+
+    <div id="auth-buttons">
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'register' %}'">Sign Up</a>
+        <a href="{% url 'mybookings' %}">My Bookings</a>
+        <a href="{% url 'login' %}">Admin</a>
+    </div>
+
+    <h2>Available Events</h2>
+    <div id="events-list">
+        <!-- Events will be loaded here -->
+    </div>
+
+    <script>
+        // Load events from API
+        fetch('/events')
+            .then(response => response.json())
+            .then(events => {
+                const eventsList = document.getElementById('events-list');
+                events.forEach(event => {
+                    eventsList.innerHTML += `
+                        <div class="event">
+                            <h3>${event.title}</h3>
+                            <p>Location: ${event.location}</p>
+                            <p>Date: ${event.date}</p>
+                            <p>Available Seats: ${event.available_seats}</p>
+                            <button onclick="bookTicket(${event.id})">Book Tickets</button>
+                        </div>
+                    `;
+                });
+            });
+
+        function bookTicket(eventId) {
+            const seats = prompt("Enter number of seats to book:");
+            if (seats) {
+                fetch('/bookings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: JSON.stringify({
+                        event_id: eventId,
+                        seats_booked: parseInt(seats)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Booking successful!');
+                    location.reload();
+                });
+            }
+        }
+
+        function viewMyBookings() {
+            if (localStorage.getItem('token')) {
+                location.href = 'my-bookings.html';
+            } else {
+                alert('Please login first');
+                location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+</html>
